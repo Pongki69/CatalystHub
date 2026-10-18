@@ -1,38 +1,117 @@
-# CatalystHub
+<div align="center">
+  <img src="client/public/favicon.svg" alt="CatalystHub" width="64" height="64" />
+  <h1>CatalystHub</h1>
+  <p>A shared workspace for client requests, agency work, and clear project updates.</p>
+  <p>
+    <a href="https://catalyst-hub-beryl.vercel.app">Open the live website</a>
+  </p>
+  <p>
+    <img alt="React" src="https://img.shields.io/badge/React-18-149eca?logo=react&logoColor=white" />
+    <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-5-3178c6?logo=typescript&logoColor=white" />
+    <img alt="Express" src="https://img.shields.io/badge/Express-4-444?logo=express&logoColor=white" />
+    <img alt="MongoDB" src="https://img.shields.io/badge/MongoDB-8-47a248?logo=mongodb&logoColor=white" />
+  </p>
+</div>
 
-A full-stack client service and request management app built with React, TypeScript, Express, and MongoDB.
+<p align="center">
+  <img src="client/public/workflow/agent-overview.png" alt="CatalystHub agent workspace overview" width="100%" />
+</p>
 
-## Step 1 — API and database
+## What you can do
 
-The Express app lives in `server/src`: `models/` contains typed Mongoose models, `middleware/` handles JWT authentication and errors, and `routes/` exposes auth, ticket, notification, private message, and admin endpoints. Copy `server/.env.example` to `server/.env` and set `MONGODB_URI`, `JWT_SECRET`, and (optionally) `CLIENT_ORIGIN`. Add a Gmail account, a Google app password, and a separate OTP signing secret to enable registration verification. Account creation requires a six-digit code sent to the supplied email address; codes expire after ten minutes. The guest API runs separately on port 5001 and uses `MONGODB_GUEST_URI`; its database name must include `guest` and must differ from the main database. Agent accounts must be approved by an admin before signing in. Create or promote admin accounts directly in MongoDB; the app does not expose admin registration.
+| Clients | Agents | Admins |
+|---|---|---|
+| Submit and track requests | Browse the team queue and respond to open work | Approve agent accounts and assign requests |
+| Compare agent responses and choose who works | Share progress and send work for client review | Search and manage accounts and requests |
+| Discuss work, share files, and review delivery | Coordinate with approved helpers | Review agency activity |
 
-## Step 2 — Ticket API
+Everyone gets private messages, notifications, activity history, calendars, and editable profiles. New accounts verify their email with a six-digit code before registration completes. Agent accounts need admin approval before sign-in.
 
-Authenticated clients can create and view their own tickets, set priority, edit open requests, add comments and files, compare agents’ proposed approaches, select who will work on a request, confirm work resolved after review with an optional 1–5 star rating, request changes, reopen completed requests, and delete their own requests. Agents can browse the agency-wide request queue at every status and filter requests assigned to them, teammates, unassigned work, or client review; they can read and post in a request conversation only when assigned, while other agents see only request summaries and their own proposal. On In Progress work, agents may offer help; when the assigned agent or an admin accepts, the helper can join a private text discussion with the assigned agent and admins. The client can see who joined, while internal messages and progress notes stay private. The assigned agent remains responsible for status and delivery. Agents can submit or update a response before client selection, move only their assigned work through In Progress, send work for review with a required delivery note and optional attachment, and cancel their own assignment while it is open or in progress. Cancelling returns the request to the open queue, removes that agent’s outdated response, and notifies the client. Agents cannot change priority or claim work directly. Admins can view all tickets, filter/search, assign requests directly, and approve/reject agent access. Important events are timestamped in the activity log: admins see all events, while clients and agents see events involving their accounts and requests. Client activity includes request creation, edits, deletion, resolution confirmation, and change/reopen actions. Each request records the agent who marked work ready and, after client confirmation, the agent credited for that completed work plus who confirmed resolution. Agent profiles show historical client-confirmation totals and average optional client rating, plus a searchable and date-filtered accomplishment history that remains after a request is reopened; client profiles link their request count back to the filtered request list. Notifications follow the same audience rules. Ticket threads and private conversations support text, voice notes (up to 2 MB), JPG/PNG/WebP images (up to 500 KB), and PDF, text, CSV, Office, and ZIP files (up to 2 MB). During client review, the client sees the agent’s delivery note and proof in the review panel and can add comments or files in the request conversation. Private conversations are limited to authorized agency/client contacts.
+## Tech stack
 
-## Step 3 — Web client
-
-The Vite app in `client/` includes a public landing-page workflow walkthrough with sample screenshots, login/register with client or agent selection, an auth context, responsive navigation, role-aware dashboards, admin agent approvals, private messages with a searchable new-conversation picker, role-scoped activity and notifications, ticket filtering/search, threaded discussions with file/image/voice attachments, client edit/resolve/reopen/delete actions, and admin assignment controls. Clients can edit open requests, delete their own requests from the list or detail page after confirmation, and see those changes alongside creation and resolve/reopen events in My activity. Admins can delete requests, search all accounts, ban or unban accounts, and moderate request messages. Request tables display assignment ownership alongside priority and status. Closed requests are clearly distinct from client-confirmed resolutions; an agency closure without client confirmation is not a completion, while past confirmations remain in the agent’s historical record if work is reopened. Request tables display filled priority and status pills for quick scanning. Request details show a visual workflow progress tracker and distinct agent status actions, including a confirmed “Cancel my work” action for assigned open or in-progress tickets. Success toasts appear in the upper-right below the workspace header, while request creation shows an inline banner with a direct link to the new request. Message authors can edit or delete their own messages through the three-dot menu; deleted messages remain as visible tombstones and edited messages show an “Edited” label. Users can customize their name, job title, organization, location, website/portfolio, up-to-500-character bio, and password from My profile; profile details save together from a dedicated “Save profile details” button below the About field, and profile photos and cover images save automatically after cropping. Sign-in email changes use a separate action after confirming the current password, and password changes retain their own explicit confirmation action. The editor displays profile and password errors beside their corresponding actions, preserves specific error messages, and shows successful profile, email, password, and image saves in the shared upper-right toast, keeps sign-in email, profile details, and password as three separate save actions, and provides an image retry action if an automatic save fails. The current sign-in email stays visible separately from the blank new-email input; to change it, only a new address and current password are needed. “View my profile” is styled as a navigation link. The bio editor auto-grows without a manual resize handle, like the message composer. Profile editing and account creation both ask users to confirm a new password and show whether the entries match; the server rejects mismatches. My profile opens in read-only viewing mode by default, with a dedicated edit action; the view uses a refined cover and identity header, an About panel, and a compact list of only the optional details the member has filled in, with helpful empty states. Agent profile cards show confirmed completions and average optional ratings; client profiles show a clickable request count that opens the client’s filtered, visibility-scoped request list. Names and photos on agent response and completion cards link to member profiles; agents send a short response before client selection, and cannot claim requests directly or change client-set priority. The request review panel highlights the assigned worker and response before the client confirms resolution, and offers optional star feedback. Agents can add a delivery note or supporting file before sending work for review, and client review comments can include image/document attachments in the same request conversation. The request calendar fits its six-week grid to the viewport, provides a Today control and selected-day agenda, and shows due dates (or submission dates when no due date is set) with status and priority colors. Agents see their active assigned work plus open requests available to pick up; admins can set due dates on request details. Admin analytics summarize completion, overdue work, priorities, assignment, and status distribution. Request and message submissions use a client-side action lock and persistent submission IDs so retries do not create duplicate records. The login page links to a guest demo with client and agent entry buttons; demo content is shared and resets at 00:00 UTC each day. A banner warns guests not to enter sensitive information. Password visibility can be toggled on the sign-in and registration forms. The API client uses bearer tokens persisted in session storage and routes guest requests only to the guest API.
+- **Web:** React, TypeScript, Vite, Tailwind CSS
+- **API:** Node.js, Express, TypeScript, Mongoose
+- **Database:** MongoDB
+- **Email verification:** Gmail SMTP with a Google App Password
 
 ## Run locally
 
-1. Install Node.js 20+ and MongoDB (local or hosted).
-2. Copy `server/.env.example` to `server/.env` and configure the main and guest MongoDB URIs. Use a separate database name such as `catalysthub_guest` for the demo. Configure `GMAIL_USER`, a Google app password in `GMAIL_APP_PASSWORD`, and a unique `EMAIL_OTP_SECRET` to enable real-email verification for account registration. Registration cannot complete until the address is verified with the emailed six-digit code.
-3. From the repository root, run `npm install`, then `npm run dev`.
-4. Open the Vite URL shown in the terminal (normally `http://localhost:5173`).
+### You’ll need
 
-The API runs on port 5000 by default. Run `npm test` for the server unit tests and `npm run build` to type-check and build both workspaces.
+- Node.js 20 or newer
+- MongoDB running locally or an Atlas connection string
 
-### Test database and integration checks
+### Start the app
 
-The ignored local file `server/.env.test` selects `mongodb://127.0.0.1:27017/mympp_test` and a test-only JWT secret. The committed `server/.env.test.example` documents the expected shape. Run `npm run test:integration --workspace server` to connect to the test database, add any missing declared indexes without dropping existing indexes, verify model indexes, and exercise authenticated ticket access and concurrent resolution. The test refuses a non-local MongoDB host or database name other than `mympp_test`; its fixtures use random IDs and cleanup is limited to those fixture IDs. Do not point this file at production data.
+1. Copy `server/.env.example` to `server/.env` and fill in the values below.
+2. From the repository root, install packages and start the web app and APIs:
 
-To explore populated screens, run `npm run seed:preview --workspace server`. It adds seven demo accounts, seven requests across the workflow, request conversations, a private conversation, activity, and notifications to `mympp_test`. The command prints the preview login emails and shared local password. Run `npm run reset:preview --workspace server` to remove those preview records and restore the pre-seed collection counts. Both commands are locked to the local `mympp_test` database; the reset uses a local ignored ID manifest and refuses to remove unrelated records. Keep the manifest until you are finished exploring.
+   ```bash
+   npm install
+   npm run dev
+   ```
 
-## Workflow and API notes
+3. Open the Vite address printed in the terminal (usually `http://localhost:5173`).
 
-Each request has one active assigned agent. Multiple agents can submit proposals while a request is open, then the client chooses one; admins may directly assign an approved, active agent. Only that assigned agent can send the required delivery note that moves the request into client review. The generic admin update route cannot bypass that handoff. Client confirmation resolves the request; requesting changes reopens work, and it returns to the agency queue if the previous agent is unavailable. Accepted helpers can use a separate 2,000-character text thread with the assigned agent and admins; messages are audited and notify current team members. Reassignment ends helper access tied to the former owner. Clients see helper names, not the internal team discussion.
+The main API uses port `5000`; the local guest demo API uses port `5001`.
 
-`GET /api/tickets` returns bounded 50-item pages by default; use `limit`, `beforeDate`, and `beforeId` to continue through the stable updated-time cursor. `GET /api/tickets/summary` returns role-scoped counts and five recent requests. Calendar requests accept `from` and `to` dates and distinguish scheduled `DUE` events from `SUB` submission dates. The private inbox loads 50 conversations per page and provides `hasMore` and `nextCursor` fields.
+### Environment variables
 
-Request and private messages support up to 20,000 characters; required delivery notes remain capped at 2,000. Attachments are checked for allowed MIME type, extension, size, and common file signatures, but are not malware-scanned. Non-admin activity responses omit actor email. Permanent deletion of agents with request history is blocked so admins can ban an account without erasing delivery records. Account and request deletion still span multiple MongoDB collections without a transaction; see `SYSTEM_AUDIT.md` for remaining operational risks and verification limits.
+| Variable | Purpose |
+|---|---|
+| `MONGODB_URI` | Main application database |
+| `JWT_SECRET` | Signs login tokens; use a long random value |
+| `CLIENT_ORIGIN` | Website origin allowed by the API, such as `http://localhost:5173` |
+| `GMAIL_USER` | Gmail account used to send verification codes |
+| `GMAIL_APP_PASSWORD` | Google App Password (not your regular Gmail password) |
+| `EMAIL_OTP_SECRET` | Separate random secret for email verification codes |
+| `MONGODB_GUEST_URI` | Separate database for guest demo data; its name must include `guest` |
+
+Keep database credentials and signing secrets private. Never commit `.env` files.
+
+## Deploy on Vercel
+
+Create **two Vercel projects from this same GitHub repository**:
+
+| Project | Root directory | Preset | Variables |
+|---|---|---|---|
+| Website | `client` | Vite | `VITE_API_URL` (**Config**) = `https://<api-domain>/api` |
+| API | `server` | Express | Use the API variables listed below |
+
+| API variable | Vercel type | Purpose |
+|---|---|---|
+| `MONGODB_URI` | Secret | Main application database |
+| `JWT_SECRET` | Secret | Login token signing key |
+| `EMAIL_OTP_SECRET` | Secret | Verification-code signing key |
+| `GMAIL_APP_PASSWORD` | Secret | Gmail SMTP credential |
+| `CLIENT_ORIGIN` | Config | Website origin, such as `https://your-site.vercel.app` |
+| `GMAIL_USER` | Config | Gmail sender account |
+
+Set the API project’s `CLIENT_ORIGIN` to the website’s exact origin. Add variables to **Production** and redeploy the project after changing them. The API domain is shown on the API project’s Vercel deployment page.
+
+## Local guest demo
+
+The guest workspace uses its own API and database so demo data stays separate from real accounts. Guest content is shared with other visitors and resets daily. **Do not enter real client information or sensitive data in the demo.**
+
+For local development, point `MONGODB_GUEST_URI` to a separate database whose name includes `guest`. Never point it to the main database.
+
+## Checks and preview data
+
+```bash
+npm test
+npm run build
+```
+
+The integration check and preview-data scripts are restricted to the local `mympp_test` database:
+
+```bash
+npm run test:integration --workspace server
+npm run seed:preview --workspace server
+npm run reset:preview --workspace server
+```
+
+Preview seeding prints local demo credentials. Keep `server/.env.test` pointed at the local test database; **never use production data for tests or previews**.
+
+## License
+
+[MIT](LICENSE)
