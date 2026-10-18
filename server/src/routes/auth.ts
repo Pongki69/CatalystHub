@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import nodemailer from 'nodemailer';
 import { createHmac, randomInt, timingSafeEqual } from 'node:crypto';
 import { z } from 'zod';
 import { User } from '../models/User';
@@ -15,7 +16,25 @@ function issueToken(id: string): string { return jwt.sign({ sub: id }, process.e
 const verificationTokenSecret = () => process.env.EMAIL_OTP_SECRET!;
 const hashCode = (email: string, code: string) => createHmac('sha256', verificationTokenSecret()).update(`${email}:${code}`).digest('hex');
 const emailSchema = z.object({ email: z.string().trim().email().max(254) });
-const emailVerificationConfigured = () => Boolean(process.env.RESEND_API_KEY && process.env.EMAIL_FROM && process.env.EMAIL_OTP_SECRET);
+const emailVerificationConfigured = () => Boolean(process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD && process.env.EMAIL_OTP_SECRET);
+let gmailTransporter: ReturnType<typeof nodemailer.createTransport> | undefined;
+function getGmailTransporter(): ReturnType<typeof nodemailer.createTransport> {
+  if (!gmailTransporter) {
+    gmailTransporter = nodemailer.createTransport({
+      host: 'smtp.gmail.com',
+      port: 465,
+      secure: true,
+      auth: {
+        user: process.env.GMAIL_USER,
+        pass: process.env.GMAIL_APP_PASSWORD?.replace(/\s/g, ''),
+      },
+      connectionTimeout: 10_000,
+      greetingTimeout: 10_000,
+      socketTimeout: 15_000,
+    });
+  }
+  return gmailTransporter;
+}
 const emailCodeWindows = new Map<string, { startedAt: number; requests: number }>();
 function isEmailCodeRateLimited(ip: string, now: number): boolean {
   const windowMs = 15 * 60 * 1000;
@@ -44,14 +63,17 @@ authRouter.post('/email-code', async (req, res, next) => {
     const expiresAt = new Date(now.getTime() + 10 * 60 * 1000);
     await EmailVerification.findOneAndUpdate({ email }, { email, codeHash: hashCode(email, code), expiresAt, resendAt: new Date(now.getTime() + 60_000), attempts: 0 }, { upsert: true, new: true, setDefaultsOnInsert: true });
 
-    const delivery = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ from: process.env.EMAIL_FROM, to: [email], subject: 'Your CatalystHub verification code', text: `Your CatalystHub verification code is ${code}. It expires in 10 minutes. If you did not request this, you can ignore this email.`, html: `<div style="font-family:Arial,sans-serif;color:#173528;max-width:520px"><h2>Verify your email</h2><p>Enter this code to finish creating your CatalystHub account:</p><p style="font-size:32px;font-weight:700;letter-spacing:8px">${code}</p><p>This code expires in 10 minutes. If you did not request it, you can ignore this email.</p></div>` }),
-    });
-    if (!delivery.ok) {
+    try {
+      await getGmailTransporter().sendMail({
+        from: `CatalystHub <${process.env.GMAIL_USER}>`,
+        to: email,
+        subject: 'Your CatalystHub verification code',
+        text: `Your CatalystHub verification code is ${code}. It expires in 10 minutes. If you did not request this, you can ignore this email.`,
+        html: `<div style="font-family:Arial,sans-serif;color:#173528;max-width:520px"><h2>Verify your email</h2><p>Enter this code to finish creating your CatalystHub account:</p><p style="font-size:32px;font-weight:700;letter-spacing:8px">${code}</p><p>This code expires in 10 minutes. If you did not request it, you can ignore this email.</p></div>`,
+      });
+    } catch (error) {
       await EmailVerification.deleteOne({ email });
-      console.error('Email verification delivery failed:', delivery.status, await delivery.text());
+      console.error('Gmail verification email delivery failed:', error);
       res.status(502).json({ success: false, message: 'We could not send the verification email. Please try again shortly.' }); return;
     }
     res.json({ success: true, data: { message: 'Verification code sent. Check your inbox and spam folder.' } });

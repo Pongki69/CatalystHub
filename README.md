@@ -4,7 +4,7 @@ A full-stack client service and request management app built with React, TypeScr
 
 ## Step 1 — API and database
 
-The Express app lives in `server/src`: `models/` contains typed Mongoose models, `middleware/` handles JWT authentication and errors, and `routes/` exposes auth, ticket, notification, private message, and admin endpoints. Copy `server/.env.example` to `server/.env` and set `MONGODB_URI`, `JWT_SECRET`, and (optionally) `CLIENT_ORIGIN`. Add a Resend API key, verified sender address, and separate OTP signing secret to enable registration verification. Account creation requires a six-digit code sent to the supplied email address; codes expire after ten minutes. The guest API runs separately on port 5001 and uses `MONGODB_GUEST_URI`; its database name must include `guest` and must differ from the main database. Agent accounts must be approved by an admin before signing in. Create or promote admin accounts directly in MongoDB; the app does not expose admin registration.
+The Express app lives in `server/src`: `models/` contains typed Mongoose models, `middleware/` handles JWT authentication and errors, and `routes/` exposes auth, ticket, notification, private message, and admin endpoints. Copy `server/.env.example` to `server/.env` and set `MONGODB_URI`, `JWT_SECRET`, and (optionally) `CLIENT_ORIGIN`. Add a Gmail account, a Google app password, and a separate OTP signing secret to enable registration verification. Account creation requires a six-digit code sent to the supplied email address; codes expire after ten minutes. The guest API runs separately on port 5001 and uses `MONGODB_GUEST_URI`; its database name must include `guest` and must differ from the main database. Agent accounts must be approved by an admin before signing in. Create or promote admin accounts directly in MongoDB; the app does not expose admin registration.
 
 ## Step 2 — Ticket API
 
@@ -17,7 +17,7 @@ The Vite app in `client/` includes a public landing-page workflow walkthrough wi
 ## Run locally
 
 1. Install Node.js 20+ and MongoDB (local or hosted).
-2. Copy `server/.env.example` to `server/.env` and configure the main and guest MongoDB URIs. Use a separate database name such as `catalysthub_guest` for the demo. Configure `RESEND_API_KEY`, a verified `EMAIL_FROM` sender, and a unique `EMAIL_OTP_SECRET` to enable real-email verification for account registration. Registration cannot complete until the address is verified with the emailed six-digit code.
+2. Copy `server/.env.example` to `server/.env` and configure the main and guest MongoDB URIs. Use a separate database name such as `catalysthub_guest` for the demo. Configure `GMAIL_USER`, a Google app password in `GMAIL_APP_PASSWORD`, and a unique `EMAIL_OTP_SECRET` to enable real-email verification for account registration. Registration cannot complete until the address is verified with the emailed six-digit code.
 3. From the repository root, run `npm install`, then `npm run dev`.
 4. Open the Vite URL shown in the terminal (normally `http://localhost:5173`).
 
