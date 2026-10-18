@@ -12,6 +12,8 @@ import { errorHandler, notFound } from './middleware/errors';
 import { ensureRuntimeReady } from './config/runtime';
 
 export const app = express();
+// Vercel's Express framework preset detects this file as the app entry point.
+export default app;
 // Vercel runs this app as a serverless function, so establish its database
 // connection on demand and reuse it for warm invocations. Local API processes
 // continue to connect in their existing entry points.
